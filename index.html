@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      body {
+        margin: 0;
+        padding-bottom: 3rem;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+      }
+
+      #form {
+        background: #fff;
+        padding: 0.5rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        height: 4rem;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        border-top: 1px solid #ddd;
+      }
+      #input,
+      #nickname,
+      #room {
+        border: 1px solid #ddd;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        margin: 0.25rem;
+        flex-grow: 1;
+        font-size: 1rem;
+      }
+      #input:focus,
+      #nickname:focus,
+      #room:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+      #form > button {
+        background: #007bff;
+        border: none;
+        padding: 0 1rem;
+        margin: 0.25rem;
+        border-radius: 20px;
+        outline: none;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      #form > button:hover {
+        background: #0056b3;
+      }
+
+      #messages {
+        list-style-type: none;
+        margin: 0;
+        padding: 1rem;
+        max-height: calc(100vh - 6rem);
+        overflow-y: auto;
+      }
+      #messages > li {
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      #messages > li:nth-child(odd) {
+        background: #e9ecef;
+      }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const socket = io();
+      const currentRoom = null;
+
+      const messages = document.getElementById("messages");
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
+      const nicknameInput = document.getElementById("nickname");
+      const roomSelect = document.getElementById("room");
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (input.value && nicknameInput.value && roomSelect.value) {
+          if (currentRoom !== roomSelect.value) {
+            if (currentRoom) {
+              socket.emit("leave room", currentRoom);
+            }
+            currentRoom = roomSelect.value;
+            socket.emit("join room", currentRoom);
+          }
+          socket.emit("chat message", {
+            nickname: nicknameInput.value,
+            room: currentRoom,
+            message: input.value,
+          });
+          input.value = "";
+        }
+      });
+
+      roomSelect.addEventListener("change", function () {
+        messages.innerHTML = ""; // Clear chat messages
+        if (currentRoom) {
+          socket.emit("leave room", currentRoom);
+        }
+        currentRoom = roomSelect.value;
+        socket.emit("join room", currentRoom); // Join the new room
+      });
+
+      socket.on("chat message", function (msg) {
+        const item = document.createElement("li");
+        item.textContent = msg.nickname + ": " + msg.message;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on("disconnect", function (reason) {
+        console.log(`Disconnected: ${reason}`);
+      });
+    });
+  </script>
+  <body>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="nickname" placeholder="Nickname" autocomplete="off" />
+      <select id="room">
+        <option value="Room1">Room 1</option>
+        <option value="Room2">Room 2</option>
+      </select>
+      <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+  </body>
+</html>
