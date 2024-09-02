@@ -6,6 +6,8 @@ Frontend lähettää viestiobjektin backendille, joka sisältää huoneen, käyt
 
 Namespace on ylempi jaottelutaso kuin huoneet. Yksi namespace voi sisältää useamman kuin yhden huoneen.
 
+Sovelluksessani voisin käyttää namespaceja, esim. järjestämään erilaisia huoneryhmiä loogisiin kokonaisuuksiin, kuten tiimikohtaisiin keskusteluihin, projekteihin tai osastoihin.
+
 # Screenshotit
 
 ![Screenshot1](./screenshot.png)
